@@ -1,6 +1,8 @@
 ## Projetos 3 
 ## Rede Neural
 ## Previsão de Cancelamento de Reservas de Hotel
+## Gabriel Gral, Guilherme Luz e Paulo Meira
+
 
 ## Importar packages
 library(readr)
