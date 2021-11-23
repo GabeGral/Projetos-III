@@ -1,6 +1,6 @@
 ---
 title: "Previsão de cancelamento de reservas de hotel"
-author: "Guilherme Luz"
+author: "Gabriel Gral, Guilherme Luz e Paulo Meira"
 date: "7/12/2021"
 output: 
   pdf_document: 
