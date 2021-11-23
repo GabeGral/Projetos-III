@@ -1,0 +1,95 @@
+---
+output: 
+  pdf_document:
+    keep_tex: true
+geometry: margin=1in
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache = TRUE, echo = FALSE, tidy = TRUE, tidy.opts = list(width.cutoff = 60), warning = T)
+```
+
+```{r, include=FALSE}
+library(tidyverse)
+library(caret)
+library(randomForest)
+library(C50)
+```
+
+```{r}
+set.seed(1444)
+```
+
+```{r}
+tidy_data = read_rds("tidy_data")
+X = tidy_data[[1]]
+Y = tidy_data[[2]]
+X_test = tidy_data[[3]]
+Y_test = tidy_data[[4]]
+```
+
+# Random Forest
+
+Também foi utilizada a Random Forest, que é um Bagging (Bootstrap aggregating) de árvores de decisão. O número de arvores usado foi 1000 e o número de variáveis selecionadas aleatóriamente em cada árvore foi escolhido de acordo com o Out-of-Bag error.
+
+```{r}
+avg.oob = data.frame(mtry = NULL, OOB_error = NULL)
+mtry_range = seq(from = 5, to = ncol(X), by = 2)
+for( i in mtry_range){ 
+forest = randomForest( x = X, y = as.factor(Y),
+                       ntree = 1000, mtry = i, 
+                       xtest = X_test, ytest = Y_test )
+avg.oob = rbind(avg.oob, 
+                 data.frame(mtry = i, 
+                            OOB_error = mean(forest$err.rate)) )
+}
+```
+
+```{r, warning = FALSE, fig.cap= "Out-of-Bag error (OOB_error) por número de variáveis selecionadas (mtry)" }
+ggplot( avg.oob, aes(x= mtry, y = OOB_error))+
+  geom_point()+
+  geom_point(aes(x= avg.oob[which.min(avg.oob$OOB_error) , 1],
+                 y= min(avg.oob$OOB_error)), 
+             color = "red")
+  
+mtry_star = avg.oob$mtry[which.min(avg.oob$OOB_error)]
+```
+
+O melhor número de variáveis foi `r mtry_star`.
+
+```{r}
+forest = randomForest( x = X, y = as.factor(Y),
+                       ntree = 1000, 
+                       mtry = avg.oob$mtry[which.min(avg.oob$OOB_error)], 
+                       xtest = X_test, ytest = Y_test )
+```
+
+Usando o modelo com  o parâmetro ótimo na base de teste, temos:
+
+**Confusion Matrix**
+
+```{r}
+forest$test$confusion[ , -3]
+accuracy = (forest$test$confusion[1,1]+forest$test$confusion[2,2])/sum(forest$test$confusion[1:2,1:2])
+```
+
+A acurácia fora da amostra foi `r accuracy`.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
